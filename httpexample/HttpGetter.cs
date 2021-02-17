@@ -1,6 +1,5 @@
 using System;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -14,20 +13,31 @@ namespace httpexample
         {
             _client = client;
         }
-        
-        public async Task Run()
+
+        public async Task<DogImage> Run()
         {
             try
             {
-                var dogImage = await _client.GetFromJsonAsync<DogImage>("https://dog.ceo/api/breeds/image/random");
-                if (dogImage != null)
+                var response = await _client.GetAsync("https://dog.ceo/api/breeds/image/random");
+                if (!response.IsSuccessStatusCode)
                 {
-                    Console.WriteLine(dogImage.Message);
-                    Console.WriteLine(dogImage.Status);
+                    Console.WriteLine("Got an unsuccessful status code");
+                    return null;
                 }
-                else
+
+                if (response.Content.Headers.ContentType?.MediaType == "application/json")
                 {
-                    Console.WriteLine("Got null");
+                    var contentStream = await response.Content.ReadAsStreamAsync();
+
+                    try
+                    {
+                        return await JsonSerializer.DeserializeAsync<DogImage>(contentStream);
+                    }
+                    catch (JsonException) // Invalid JSON
+                    {
+                        Console.WriteLine("Invalid JSON.");
+                    }
+
                 }
             }
             catch (HttpRequestException) // Non success
@@ -42,6 +52,8 @@ namespace httpexample
             {
                 Console.WriteLine("Invalid JSON.");
             }
+
+            return null;
         }
     }
 }

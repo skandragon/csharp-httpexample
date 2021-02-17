@@ -2,6 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
+        <Configurations>Release</Configurations>
+        <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
 </Project>
